@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { clientService } from '../services/clientService';
-import type { Child, Parent } from '../types';
+import { campaignService } from '../services/campaignService';
+import type { Child, Parent, Campaign } from '../types';
 import Navbar from '../components/Navbar';
 
 const ClientFormPage: React.FC = () => {
@@ -14,14 +15,25 @@ const ClientFormPage: React.FC = () => {
   const [campaignSource, setCampaignSource] = useState('');
   const [children, setChildren] = useState<Child[]>([]);
   const [parents, setParents] = useState<Parent[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    loadCampaigns();
     if (isEdit && id) {
       loadClient(id);
     }
   }, [id, isEdit]);
+
+  const loadCampaigns = async () => {
+    try {
+      const campaignsData = await campaignService.getAllCampaigns();
+      setCampaigns(campaignsData);
+    } catch (error) {
+      console.error('Error loading campaigns:', error);
+    }
+  };
 
   const loadClient = async (clientId: string) => {
     try {
@@ -172,13 +184,18 @@ const ClientFormPage: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Рекламная кампания
             </label>
-            <input
-              type="text"
+            <select
               value={campaignSource}
               onChange={(e) => setCampaignSource(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              placeholder="Instagram Ads, Google Ads и т.д."
-            />
+            >
+              <option value="">Без источника</option>
+              {campaigns.map(campaign => (
+                <option key={campaign.id} value={campaign.name}>
+                  {campaign.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
