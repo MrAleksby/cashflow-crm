@@ -3,14 +3,13 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Firebase конфигурация
-// ВАЖНО: Замените эти значения на свои из Firebase Console
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDOIzhU1VU8l87xZRBfgwJo2g5Zwo1aN00",
+  authDomain: "cashflow-crm.firebaseapp.com",
+  projectId: "cashflow-crm",
+  storageBucket: "cashflow-crm.firebasestorage.app",
+  messagingSenderId: "495918318019",
+  appId: "1:495918318019:web:8dd02063293591f9d0bd76"
 };
 
 // Инициализация Firebase
