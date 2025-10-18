@@ -89,7 +89,7 @@ const AppRoutes: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <Router>
+    <Router basename="/cashflow-crm">
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
