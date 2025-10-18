@@ -14,6 +14,8 @@ const ClassesPage: React.FC = () => {
   const [showCreateClass, setShowCreateClass] = useState(false);
   const [showRegisterChild, setShowRegisterChild] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
+  const [savingClass, setSavingClass] = useState(false);
+  const [savingRegistration, setSavingRegistration] = useState(false);
   
   // Форма создания занятия
   const [newClassDate, setNewClassDate] = useState('');
@@ -47,7 +49,10 @@ const ClassesPage: React.FC = () => {
   const handleCreateClass = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (savingClass) return; // Защита от повторного клика
+    
     try {
+      setSavingClass(true);
       await classService.createClass({
         date: newClassDate,
         time: newClassTime,
@@ -59,18 +64,23 @@ const ClassesPage: React.FC = () => {
       setNewClassTime('');
       setNewClassPrice('');
       setShowCreateClass(false);
-      loadData();
+      await loadData();
     } catch (error) {
       console.error('Error creating class:', error);
+      alert('Ошибка при создании занятия');
+    } finally {
+      setSavingClass(false);
     }
   };
 
   const handleRegisterChild = async (e: React.FormEvent, classId: string) => {
     e.preventDefault();
     
+    if (savingRegistration) return; // Защита от повторного клика
     if (!selectedClient || !selectedChild) return;
 
     try {
+      setSavingRegistration(true);
       const client = clients.find(c => c.id === selectedClient);
       const child = client?.children.find(ch => ch.id === selectedChild);
       
@@ -81,10 +91,12 @@ const ClassesPage: React.FC = () => {
       setSelectedClient('');
       setSelectedChild('');
       setShowRegisterChild(null);
-      loadData();
+      await loadData();
     } catch (error) {
       console.error('Error registering child:', error);
       alert('Ошибка при записи ребенка');
+    } finally {
+      setSavingRegistration(false);
     }
   };
 
@@ -223,19 +235,21 @@ const ClassesPage: React.FC = () => {
               <div className="flex space-x-3">
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition"
+                  disabled={savingClass}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Создать
+                  {savingClass ? 'Создание...' : 'Создать'}
                 </button>
                 <button
                   type="button"
+                  disabled={savingClass}
                   onClick={() => {
                     setShowCreateClass(false);
                     setNewClassDate('');
                     setNewClassTime('');
                     setNewClassPrice('');
                   }}
-                  className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                  className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Отмена
                 </button>
@@ -337,18 +351,20 @@ const ClassesPage: React.FC = () => {
                       <div className="flex space-x-3">
                         <button
                           type="submit"
-                          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition"
+                          disabled={savingRegistration}
+                          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Записать
+                          {savingRegistration ? 'Запись...' : 'Записать'}
                         </button>
                         <button
                           type="button"
+                          disabled={savingRegistration}
                           onClick={() => {
                             setShowRegisterChild(null);
                             setSelectedClient('');
                             setSelectedChild('');
                           }}
-                          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                          className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Отмена
                         </button>

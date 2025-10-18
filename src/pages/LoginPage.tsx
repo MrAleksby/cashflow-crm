@@ -6,12 +6,14 @@ const LoginPage: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (saving) return; // Защита от повторного клика
     
     // Валидация номера телефона (9 цифр)
     if (phoneNumber.length !== 9 || !/^\d+$/.test(phoneNumber)) {
@@ -26,14 +28,14 @@ const LoginPage: React.FC = () => {
 
     try {
       setError('');
-      setLoading(true);
+      setSaving(true);
       await signIn(phoneNumber, password);
       navigate('/');
     } catch (err) {
       setError('Неверный логин или пароль');
       console.error(err);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -88,10 +90,10 @@ const LoginPage: React.FC = () => {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={saving}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-md transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Вход...' : 'Войти'}
+            {saving ? 'Вход...' : 'Войти'}
           </button>
         </form>
       </div>

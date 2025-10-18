@@ -14,7 +14,7 @@ const ClientFormPage: React.FC = () => {
   const [campaignSource, setCampaignSource] = useState('');
   const [children, setChildren] = useState<Child[]>([]);
   const [parents, setParents] = useState<Parent[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -42,6 +42,8 @@ const ClientFormPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (saving) return; // Защита от повторного клика
+    
     if (phoneNumber.length !== 9 || !/^\d+$/.test(phoneNumber)) {
       setError('Номер телефона должен содержать 9 цифр');
       return;
@@ -54,7 +56,7 @@ const ClientFormPage: React.FC = () => {
 
     try {
       setError('');
-      setLoading(true);
+      setSaving(true);
 
       const clientData = {
         phoneNumber,
@@ -85,7 +87,7 @@ const ClientFormPage: React.FC = () => {
       setError('Ошибка сохранения клиента');
       console.error(err);
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -305,16 +307,17 @@ const ClientFormPage: React.FC = () => {
           <div className="flex space-x-4">
             <button
               type="submit"
-              disabled={loading}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-md transition disabled:opacity-50"
+              disabled={saving}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Сохранение...' : 'Сохранить'}
+              {saving ? 'Сохранение...' : 'Сохранить'}
             </button>
             
             <button
               type="button"
+              disabled={saving}
               onClick={() => navigate('/')}
-              className="px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+              className="px-6 py-3 border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Отмена
             </button>

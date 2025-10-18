@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 const CampaignsPage: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   
@@ -36,12 +37,15 @@ const CampaignsPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (saving) return; // Защита от повторного клика
+    
     if (!name || !cost || !startDate) {
       setError('Заполните обязательные поля');
       return;
     }
 
     try {
+      setSaving(true);
       setError('');
       const campaignData = {
         name,
@@ -58,10 +62,12 @@ const CampaignsPage: React.FC = () => {
       }
 
       resetForm();
-      loadCampaigns();
+      await loadCampaigns();
     } catch (err) {
       setError('Ошибка сохранения кампании');
       console.error(err);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -207,14 +213,16 @@ const CampaignsPage: React.FC = () => {
               <div className="flex space-x-3">
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition"
+                  disabled={saving}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {editingId ? 'Сохранить' : 'Создать'}
+                  {saving ? 'Сохранение...' : editingId ? 'Сохранить' : 'Создать'}
                 </button>
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                  disabled={saving}
+                  className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Отмена
                 </button>

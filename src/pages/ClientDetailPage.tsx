@@ -13,6 +13,7 @@ const ClientDetailPage: React.FC = () => {
   const [client, setClient] = useState<Client | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showAddBalance, setShowAddBalance] = useState(false);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
@@ -41,9 +42,12 @@ const ClientDetailPage: React.FC = () => {
 
   const handleAddBalance = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (saving) return; // Защита от повторного клика
     if (!client || !id) return;
 
     try {
+      setSaving(true);
       const amountNum = Number(amount);
       const newBalance = client.balance + amountNum;
       
@@ -59,9 +63,12 @@ const ClientDetailPage: React.FC = () => {
       setAmount('');
       setDescription('');
       setShowAddBalance(false);
-      loadData(id);
+      await loadData(id);
     } catch (error) {
       console.error('Error adding balance:', error);
+      alert('Ошибка при пополнении баланса');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -246,18 +253,20 @@ const ClientDetailPage: React.FC = () => {
                   <div className="flex space-x-2">
                     <button
                       type="submit"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition"
+                      disabled={saving}
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Пополнить
+                      {saving ? 'Пополнение...' : 'Пополнить'}
                     </button>
                     <button
                       type="button"
+                      disabled={saving}
                       onClick={() => {
                         setShowAddBalance(false);
                         setAmount('');
                         setDescription('');
                       }}
-                      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                      className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Отмена
                     </button>

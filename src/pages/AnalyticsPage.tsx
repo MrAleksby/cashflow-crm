@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 const AnalyticsPage: React.FC = () => {
   const [stats, setStats] = useState<CampaignStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -29,15 +30,18 @@ const AnalyticsPage: React.FC = () => {
   const handleFilterByDate = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (saving) return; // Защита от повторного клика
+    
     try {
-      setLoading(true);
+      setSaving(true);
       const data = await analyticsService.getCampaignStatsByPeriod(startDate, endDate);
       setStats(data);
       setShowDateFilter(false);
     } catch (error) {
       console.error('Error loading filtered stats:', error);
+      alert('Ошибка при загрузке статистики');
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
@@ -108,14 +112,16 @@ const AnalyticsPage: React.FC = () => {
               <div className="flex space-x-3">
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition"
+                  disabled={saving}
+                  className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Применить
+                  {saving ? 'Загрузка...' : 'Применить'}
                 </button>
                 <button
                   type="button"
+                  disabled={saving}
                   onClick={handleResetFilter}
-                  className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
+                  className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Сбросить
                 </button>
