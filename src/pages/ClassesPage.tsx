@@ -177,16 +177,26 @@ const ClassesPage: React.FC = () => {
 
   // Получаем список всех детей со всех клиентов
   const getAllChildren = () => {
-    const allChildren: Array<{ id: string; name: string; age: number; clientPhone: string; clientId: string }> = [];
+    const allChildren: Array<{ 
+      id: string; 
+      name: string; 
+      age: number; 
+      clientPhone: string; 
+      clientId: string;
+      parentNames: string;
+    }> = [];
     
     clients.forEach(client => {
+      const parentNames = client.parents.map(p => p.name).filter(n => n).join(', ') || 'Не указаны';
+      
       client.children.forEach(child => {
         allChildren.push({
           id: child.id,
           name: child.name,
           age: child.age,
           clientPhone: client.phoneNumber,
-          clientId: client.id
+          clientId: client.id,
+          parentNames: parentNames
         });
       });
     });
@@ -403,7 +413,7 @@ const ClassesPage: React.FC = () => {
                           <option value="">Выберите ребенка из списка</option>
                           {getAllChildren().map(child => (
                             <option key={child.id} value={child.id}>
-                              {child.name} ({child.age} лет) - Телефон: +998{child.clientPhone}
+                              {child.name} ({child.age} лет) - Родители: {child.parentNames} - Тел: +998{child.clientPhone}
                             </option>
                           ))}
                         </select>
