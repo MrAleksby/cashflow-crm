@@ -24,8 +24,7 @@ const ClassesPage: React.FC = () => {
   const [newClassPrice, setNewClassPrice] = useState('');
 
   // Форма записи ребенка
-  const [selectedClient, setSelectedClient] = useState('');
-  const [selectedChild, setSelectedChild] = useState('');
+  const [selectedChildId, setSelectedChildId] = useState('');
 
   useEffect(() => {
     loadData();
@@ -121,19 +120,32 @@ const ClassesPage: React.FC = () => {
     e.preventDefault();
     
     if (savingRegistration) return; // Защита от повторного клика
-    if (!selectedClient || !selectedChild) return;
+    if (!selectedChildId) return;
 
     try {
       setSavingRegistration(true);
-      const client = clients.find(c => c.id === selectedClient);
-      const child = client?.children.find(ch => ch.id === selectedChild);
       
-      if (!client || !child) return;
+      // Находим клиента и ребенка по ID ребенка
+      let foundClient = null;
+      let foundChild = null;
+      
+      for (const client of clients) {
+        const child = client.children.find(ch => ch.id === selectedChildId);
+        if (child) {
+          foundClient = client;
+          foundChild = child;
+          break;
+        }
+      }
+      
+      if (!foundClient || !foundChild) {
+        alert('Ребенок не найден');
+        return;
+      }
 
-      await classService.registerChild(classId, client.id, child.id, child.name);
+      await classService.registerChild(classId, foundClient.id, foundChild.id, foundChild.name);
       
-      setSelectedClient('');
-      setSelectedChild('');
+      setSelectedChildId('');
       setShowRegisterChild(null);
       await loadData();
     } catch (error) {
@@ -163,6 +175,25 @@ const ClassesPage: React.FC = () => {
     return new Intl.NumberFormat('uz-UZ').format(amount) + ' сум';
   };
 
+  // Получаем список всех детей со всех клиентов
+  const getAllChildren = () => {
+    const allChildren: Array<{ id: string; name: string; age: number; clientPhone: string; clientId: string }> = [];
+    
+    clients.forEach(client => {
+      client.children.forEach(child => {
+        allChildren.push({
+          id: child.id,
+          name: child.name,
+          age: child.age,
+          clientPhone: client.phoneNumber,
+          clientId: client.id
+        });
+      });
+    });
+    
+    return allChildren.sort((a, b) => a.name.localeCompare(b.name));
+  };
+
   const handleCalendarSelect = (start: Date) => {
     // Заполняем форму данными из выбранного слота календаря
     const dateStr = start.toISOString().split('T')[0];
@@ -188,8 +219,6 @@ const ClassesPage: React.FC = () => {
       }
     }, 100);
   };
-
-  const selectedClientData = clients.find(c => c.id === selectedClient);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -361,48 +390,23 @@ const ClassesPage: React.FC = () => {
                 {showRegisterChild === classSession.id && (
                   <div className="border-t border-gray-200 pt-4 mb-4">
                     <form onSubmit={(e) => handleRegisterChild(e, classSession.id)} className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Клиент
-                          </label>
-                          <select
-                            value={selectedClient}
-                            onChange={(e) => {
-                              setSelectedClient(e.target.value);
-                              setSelectedChild('');
-                            }}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                            required
-                          >
-                            <option value="">Выберите клиента</option>
-                            {clients.map(client => (
-                              <option key={client.id} value={client.id}>
-                                {client.phoneNumber} - {client.children.map(c => c.name).join(', ')}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Ребенок
-                          </label>
-                          <select
-                            value={selectedChild}
-                            onChange={(e) => setSelectedChild(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                            required
-                            disabled={!selectedClient}
-                          >
-                            <option value="">Выберите ребенка</option>
-                            {selectedClientData?.children.map(child => (
-                              <option key={child.id} value={child.id}>
-                                {child.name} ({child.age} лет)
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Выберите ребенка
+                        </label>
+                        <select
+                          value={selectedChildId}
+                          onChange={(e) => setSelectedChildId(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                          required
+                        >
+                          <option value="">Выберите ребенка из списка</option>
+                          {getAllChildren().map(child => (
+                            <option key={child.id} value={child.id}>
+                              {child.name} ({child.age} лет) - Телефон: +998{child.clientPhone}
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
                       <div className="flex space-x-3">
@@ -418,8 +422,7 @@ const ClassesPage: React.FC = () => {
                           disabled={savingRegistration}
                           onClick={() => {
                             setShowRegisterChild(null);
-                            setSelectedClient('');
-                            setSelectedChild('');
+                            setSelectedChildId('');
                           }}
                           className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
