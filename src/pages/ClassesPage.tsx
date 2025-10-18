@@ -16,8 +16,9 @@ const ClassesPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
   const [savingClass, setSavingClass] = useState(false);
   const [savingRegistration, setSavingRegistration] = useState(false);
+  const [editingClassId, setEditingClassId] = useState<string | null>(null);
   
-  // Форма создания занятия
+  // Форма создания/редактирования занятия
   const [newClassDate, setNewClassDate] = useState('');
   const [newClassTime, setNewClassTime] = useState('');
   const [newClassPrice, setNewClassPrice] = useState('');
@@ -53,23 +54,66 @@ const ClassesPage: React.FC = () => {
     
     try {
       setSavingClass(true);
-      await classService.createClass({
-        date: newClassDate,
-        time: newClassTime,
-        price: Number(newClassPrice),
-        registeredChildren: []
-      });
+      
+      if (editingClassId) {
+        // Обновляем существующее занятие
+        await classService.updateClass(editingClassId, {
+          date: newClassDate,
+          time: newClassTime,
+          price: Number(newClassPrice)
+        });
+      } else {
+        // Создаем новое занятие
+        await classService.createClass({
+          date: newClassDate,
+          time: newClassTime,
+          price: Number(newClassPrice),
+          registeredChildren: []
+        });
+      }
 
       setNewClassDate('');
       setNewClassTime('');
       setNewClassPrice('');
       setShowCreateClass(false);
+      setEditingClassId(null);
       await loadData();
     } catch (error) {
-      console.error('Error creating class:', error);
-      alert('Ошибка при создании занятия');
+      console.error('Error saving class:', error);
+      alert('Ошибка при сохранении занятия');
     } finally {
       setSavingClass(false);
+    }
+  };
+
+  const handleEditClass = (classSession: ClassSession) => {
+    setEditingClassId(classSession.id);
+    setNewClassDate(classSession.date);
+    setNewClassTime(classSession.time);
+    setNewClassPrice(classSession.price.toString());
+    setShowCreateClass(true);
+    setViewMode('list'); // Переключаемся на список
+  };
+
+  const handleCancelEdit = () => {
+    setEditingClassId(null);
+    setNewClassDate('');
+    setNewClassTime('');
+    setNewClassPrice('');
+    setShowCreateClass(false);
+  };
+
+  const handleDeleteClass = async (classId: string) => {
+    if (!window.confirm('Вы уверены, что хотите удалить это занятие? Все записи детей будут потеряны.')) {
+      return;
+    }
+
+    try {
+      await classService.deleteClass(classId);
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting class:', error);
+      alert('Ошибка при удалении занятия');
     }
   };
 
@@ -188,7 +232,9 @@ const ClassesPage: React.FC = () => {
 
         {showCreateClass && (
           <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold mb-4">Новое занятие</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              {editingClassId ? 'Редактировать занятие' : 'Новое занятие'}
+            </h2>
             <form onSubmit={handleCreateClass} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
@@ -238,17 +284,12 @@ const ClassesPage: React.FC = () => {
                   disabled={savingClass}
                   className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {savingClass ? 'Создание...' : 'Создать'}
+                  {savingClass ? 'Сохранение...' : editingClassId ? 'Сохранить' : 'Создать'}
                 </button>
                 <button
                   type="button"
                   disabled={savingClass}
-                  onClick={() => {
-                    setShowCreateClass(false);
-                    setNewClassDate('');
-                    setNewClassTime('');
-                    setNewClassPrice('');
-                  }}
+                  onClick={handleCancelEdit}
                   className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Отмена
@@ -291,14 +332,30 @@ const ClassesPage: React.FC = () => {
                     <p className="text-blue-600 font-semibold">{formatCurrency(classSession.price)}</p>
                   </div>
                   
-                  <button
-                    onClick={() => setShowRegisterChild(
-                      showRegisterChild === classSession.id ? null : classSession.id
-                    )}
-                    className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition"
-                  >
-                    + Записать ребенка
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setShowRegisterChild(
+                        showRegisterChild === classSession.id ? null : classSession.id
+                      )}
+                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition"
+                    >
+                      + Записать ребенка
+                    </button>
+                    <button
+                      onClick={() => handleEditClass(classSession)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition"
+                      title="Редактировать"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClass(classSession.id)}
+                      className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition"
+                      title="Удалить"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
 
                 {showRegisterChild === classSession.id && (
