@@ -6,6 +6,7 @@ import ClientsPage from './pages/ClientsPage';
 import ClientFormPage from './pages/ClientFormPage';
 import ClientDetailPage from './pages/ClientDetailPage';
 import ClassesPage from './pages/ClassesPage';
+import CampaignsPage from './pages/CampaignsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 
 // Защищенный маршрут
@@ -66,6 +67,12 @@ const AppRoutes: React.FC = () => {
       <Route path="/classes" element={
         <ProtectedRoute>
           <ClassesPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/campaigns" element={
+        <ProtectedRoute>
+          <CampaignsPage />
         </ProtectedRoute>
       } />
       

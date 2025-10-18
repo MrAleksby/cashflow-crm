@@ -51,6 +51,17 @@ const Navbar: React.FC = () => {
               </Link>
               
               <Link
+                to="/campaigns"
+                className={`px-3 py-2 rounded-md text-sm font-medium transition ${
+                  isActive('/campaigns') 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                Кампании
+              </Link>
+              
+              <Link
                 to="/analytics"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition ${
                   isActive('/analytics') 

@@ -56,10 +56,25 @@ export interface User {
   role: 'admin';
 }
 
+export interface Campaign {
+  id: string;
+  name: string;
+  cost: number; // затраты на рекламу
+  description?: string;
+  startDate: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CampaignStats {
   campaignName: string;
+  campaignId?: string;
   clientCount: number;
   totalRevenue: number;
   averageRevenue: number;
+  cost: number; // затраты на кампанию
+  roi: number; // ROI в процентах
+  profit: number; // прибыль (выручка - затраты)
 }
 

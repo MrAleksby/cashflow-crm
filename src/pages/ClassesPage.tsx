@@ -3,6 +3,7 @@ import { classService } from '../services/classService';
 import { clientService } from '../services/clientService';
 import type { ClassSession, Client } from '../types';
 import Navbar from '../components/Navbar';
+import ClassCalendar from '../components/ClassCalendar';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
@@ -12,6 +13,7 @@ const ClassesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateClass, setShowCreateClass] = useState(false);
   const [showRegisterChild, setShowRegisterChild] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('calendar');
   
   // Форма создания занятия
   const [newClassDate, setNewClassDate] = useState('');
@@ -105,6 +107,32 @@ const ClassesPage: React.FC = () => {
     return new Intl.NumberFormat('uz-UZ').format(amount) + ' сум';
   };
 
+  const handleCalendarSelect = (start: Date) => {
+    // Заполняем форму данными из выбранного слота календаря
+    const dateStr = start.toISOString().split('T')[0];
+    const timeStr = `${start.getHours().toString().padStart(2, '0')}:${start.getMinutes().toString().padStart(2, '0')}`;
+    
+    setNewClassDate(dateStr);
+    setNewClassTime(timeStr);
+    setShowCreateClass(true);
+    setViewMode('list');
+  };
+
+  const handleEventSelect = (classSession: ClassSession) => {
+    setViewMode('list');
+    // Прокручиваем к выбранному занятию
+    setTimeout(() => {
+      const element = document.getElementById(`class-${classSession.id}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('ring-4', 'ring-blue-400');
+        setTimeout(() => {
+          element.classList.remove('ring-4', 'ring-blue-400');
+        }, 2000);
+      }
+    }, 100);
+  };
+
   const selectedClientData = clients.find(c => c.id === selectedClient);
 
   return (
@@ -114,12 +142,36 @@ const ClassesPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Занятия</h1>
-          <button
-            onClick={() => setShowCreateClass(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition"
-          >
-            + Создать занятие
-          </button>
+          <div className="flex space-x-3">
+            <div className="flex bg-gray-200 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('calendar')}
+                className={`px-4 py-2 rounded-md transition ${
+                  viewMode === 'calendar' 
+                    ? 'bg-white text-blue-600 shadow' 
+                    : 'text-gray-600'
+                }`}
+              >
+                📅 Календарь
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 rounded-md transition ${
+                  viewMode === 'list' 
+                    ? 'bg-white text-blue-600 shadow' 
+                    : 'text-gray-600'
+                }`}
+              >
+                📋 Список
+              </button>
+            </div>
+            <button
+              onClick={() => setShowCreateClass(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition"
+            >
+              + Создать занятие
+            </button>
+          </div>
         </div>
 
         {showCreateClass && (
@@ -192,7 +244,19 @@ const ClassesPage: React.FC = () => {
           </div>
         )}
 
-        {loading ? (
+        {viewMode === 'calendar' ? (
+          loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+            </div>
+          ) : (
+            <ClassCalendar 
+              classes={classes}
+              onSelectSlot={handleCalendarSelect}
+              onSelectEvent={handleEventSelect}
+            />
+          )
+        ) : loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
           </div>
@@ -203,7 +267,7 @@ const ClassesPage: React.FC = () => {
         ) : (
           <div className="space-y-6">
             {classes.map(classSession => (
-              <div key={classSession.id} className="bg-white rounded-lg shadow p-6">
+              <div key={classSession.id} id={`class-${classSession.id}`} className="bg-white rounded-lg shadow p-6 transition-all">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-semibold text-gray-800">

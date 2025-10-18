@@ -54,6 +54,9 @@ const AnalyticsPage: React.FC = () => {
 
   const totalClients = stats.reduce((sum, stat) => sum + stat.clientCount, 0);
   const totalRevenue = stats.reduce((sum, stat) => sum + stat.totalRevenue, 0);
+  const totalCost = stats.reduce((sum, stat) => sum + stat.cost, 0);
+  const totalProfit = totalRevenue - totalCost;
+  const averageROI = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -122,7 +125,7 @@ const AnalyticsPage: React.FC = () => {
         )}
 
         {/* Общая статистика */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           <div className="bg-white rounded-lg shadow p-6">
             <p className="text-gray-600 mb-2">Всего клиентов</p>
             <p className="text-4xl font-bold text-blue-600">{totalClients}</p>
@@ -131,6 +134,18 @@ const AnalyticsPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <p className="text-gray-600 mb-2">Общая выручка</p>
             <p className="text-4xl font-bold text-green-600">{formatCurrency(totalRevenue)}</p>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <p className="text-gray-600 mb-2">Затраты на рекламу</p>
+            <p className="text-4xl font-bold text-red-600">{formatCurrency(totalCost)}</p>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <p className="text-gray-600 mb-2">Средний ROI</p>
+            <p className={`text-4xl font-bold ${averageROI > 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {averageROI.toFixed(1)}%
+            </p>
           </div>
         </div>
 
@@ -155,22 +170,21 @@ const AnalyticsPage: React.FC = () => {
                       Клиентов
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Общая выручка
+                      Выручка
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Средняя выручка на клиента
+                      Затраты
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      % от общей выручки
+                      Прибыль
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      ROI
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {stats.map((stat, index) => {
-                    const percentage = totalRevenue > 0 
-                      ? (stat.totalRevenue / totalRevenue * 100).toFixed(1) 
-                      : 0;
-                    
                     return (
                       <tr key={index} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -191,19 +205,23 @@ const AnalyticsPage: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {formatCurrency(stat.averageRevenue)}
+                          <div className="text-sm font-semibold text-red-600">
+                            {formatCurrency(stat.cost)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className={`text-sm font-semibold ${stat.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {formatCurrency(stat.profit)}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="text-sm text-gray-900 mr-2">{percentage}%</div>
-                            <div className="w-20 bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-blue-600 h-2 rounded-full"
-                                style={{ width: `${percentage}%` }}
-                              ></div>
-                            </div>
+                            <span className={`text-lg font-bold mr-2 ${stat.roi > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {stat.roi.toFixed(1)}%
+                            </span>
+                            {stat.roi > 100 && <span className="text-green-500">🔥</span>}
+                            {stat.roi > 0 && stat.roi <= 100 && <span className="text-yellow-500">📈</span>}
+                            {stat.roi <= 0 && <span className="text-red-500">📉</span>}
                           </div>
                         </td>
                       </tr>
