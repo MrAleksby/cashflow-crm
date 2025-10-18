@@ -82,26 +82,26 @@ const ClientsPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredClients.map(client => (
-              <Link
+              <div
                 key={client.id}
-                to={`/clients/${client.id}`}
-                className="bg-white rounded-lg shadow hover:shadow-lg transition p-6 block"
+                className="bg-white rounded-lg shadow hover:shadow-lg transition p-6 relative"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Телефон</p>
-                    <p className="text-lg font-semibold text-gray-800">
-                      {formatPhoneNumber(client.phoneNumber)}
-                    </p>
+                <Link to={`/clients/${client.id}`} className="block">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="text-sm text-gray-500 mb-1">Телефон</p>
+                      <p className="text-lg font-semibold text-gray-800">
+                        {formatPhoneNumber(client.phoneNumber)}
+                      </p>
+                    </div>
+                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      client.balance > 0 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {formatCurrency(client.balance)}
+                    </div>
                   </div>
-                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    client.balance > 0 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-red-100 text-red-700'
-                  }`}>
-                    {formatCurrency(client.balance)}
-                  </div>
-                </div>
 
                 <div className="mb-4">
                   <p className="text-sm text-gray-500 mb-2">Дети</p>
@@ -118,13 +118,30 @@ const ClientsPage: React.FC = () => {
                   )}
                 </div>
 
-                {client.campaignSource && (
-                  <div className="pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-500">Источник</p>
-                    <p className="text-sm text-blue-600 font-medium">{client.campaignSource}</p>
-                  </div>
-                )}
-              </Link>
+                  {client.campaignSource && (
+                    <div className="pt-4 border-t border-gray-200">
+                      <p className="text-xs text-gray-500">Источник</p>
+                      <p className="text-sm text-blue-600 font-medium">{client.campaignSource}</p>
+                    </div>
+                  )}
+                </Link>
+                
+                <div className="mt-4 pt-4 border-t border-gray-200 flex space-x-2">
+                  <Link
+                    to={`/clients/${client.id}/edit`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-4 rounded-md text-sm transition"
+                  >
+                    ✏️ Редактировать
+                  </Link>
+                  <Link
+                    to={`/clients/${client.id}`}
+                    className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-center py-2 px-4 rounded-md text-sm transition"
+                  >
+                    👁️ Подробнее
+                  </Link>
+                </div>
+              </div>
             ))}
           </div>
         )}
