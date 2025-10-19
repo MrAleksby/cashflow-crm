@@ -134,14 +134,14 @@ export const classService = {
   ): Promise<void> {
     try {
       const classDoc = await this.getClassById(classId);
-      if (!classDoc) throw new Error('Class not found');
+      if (!classDoc) throw new Error('Занятие не найдено');
 
       const client = await clientService.getClientById(clientId);
-      if (!client) throw new Error('Client not found');
+      if (!client) throw new Error('Клиент не найден');
 
       // Проверяем баланс
       if (client.balance < classDoc.price) {
-        throw new Error('Insufficient balance');
+        throw new Error(`Недостаточно средств. Баланс: ${client.balance} сум, стоимость занятия: ${classDoc.price} сум. Необходимо пополнить на ${classDoc.price - client.balance} сум.`);
       }
 
       // Обновляем статус посещения
