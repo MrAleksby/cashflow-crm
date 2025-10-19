@@ -17,14 +17,18 @@ export const transactionService = {
     try {
       const q = query(
         collection(db, TRANSACTIONS_COLLECTION),
-        where('clientId', '==', clientId),
-        orderBy('createdAt', 'desc')
+        where('clientId', '==', clientId)
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const transactions = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Transaction));
+      
+      // Сортируем на клиенте
+      return transactions.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     } catch (error) {
       console.error('Error getting transactions:', error);
       throw error;
@@ -59,14 +63,18 @@ export const transactionService = {
         collection(db, TRANSACTIONS_COLLECTION),
         where('clientId', '==', clientId),
         where('date', '>=', startDate),
-        where('date', '<=', endDate),
-        orderBy('date', 'desc')
+        where('date', '<=', endDate)
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const transactions = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Transaction));
+      
+      // Сортируем на клиенте
+      return transactions.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
     } catch (error) {
       console.error('Error getting transactions by date range:', error);
       throw error;
