@@ -126,7 +126,7 @@ export const classService = {
     }
   },
 
-  // Отметить посещение и списать деньги
+  // Отметить посещение и списать одно занятие
   async markAttendance(
     classId: string,
     clientId: string,
@@ -139,9 +139,9 @@ export const classService = {
       const client = await clientService.getClientById(clientId);
       if (!client) throw new Error('Клиент не найден');
 
-      // Проверяем баланс
-      if (client.balance < classDoc.price) {
-        throw new Error(`Недостаточно средств. Баланс: ${client.balance} сум, стоимость занятия: ${classDoc.price} сум. Необходимо пополнить на ${classDoc.price - client.balance} сум.`);
+      // Проверяем наличие доступных занятий
+      if (client.classesRemaining <= 0) {
+        throw new Error(`У клиента нет доступных занятий. Осталось: ${client.classesRemaining}. Необходимо купить занятия.`);
       }
 
       // Обновляем статус посещения
@@ -152,16 +152,16 @@ export const classService = {
         return reg;
       });
 
-      // Списываем деньги
-      const newBalance = client.balance - classDoc.price;
-      await clientService.updateBalance(clientId, newBalance);
+      // Списываем одно занятие
+      await clientService.deductClass(clientId);
 
       // Создаем транзакцию
       await transactionService.createTransaction({
         clientId,
         type: 'expense',
-        amount: classDoc.price,
-        description: `Оплата за занятие ${classDoc.date} ${classDoc.time}`,
+        amount: 0, // списание занятия, без оплаты
+        classesCount: 1,
+        description: `Списано занятие ${classDoc.date} ${classDoc.time}`,
         date: new Date().toISOString()
       });
 

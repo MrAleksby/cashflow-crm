@@ -17,8 +17,9 @@ export interface Parent {
 export interface Transaction {
   id: string;
   clientId: string;
-  type: 'income' | 'expense'; // пополнение или списание
-  amount: number;
+  type: 'income' | 'expense'; // покупка занятий или списание занятия
+  amount: number; // сумма оплаты
+  classesCount?: number; // количество занятий (для покупки)
   description: string;
   date: string;
   createdAt: string;
@@ -29,7 +30,7 @@ export interface Client {
   phoneNumber: string; // логин (9 цифр)
   children: Child[];
   parents: Parent[];
-  balance: number; // баланс в узбекских сумах
+  classesRemaining: number; // количество оставшихся занятий
   campaignSource: string; // рекламная кампания
   createdAt: string;
   updatedAt: string;

@@ -90,16 +90,48 @@ export const clientService = {
     }
   },
 
-  // Обновить баланс клиента
-  async updateBalance(id: string, newBalance: number): Promise<void> {
+  // Обновить количество занятий клиента
+  async updateClassesRemaining(id: string, classesRemaining: number): Promise<void> {
     try {
       const docRef = doc(db, CLIENTS_COLLECTION, id);
       await updateDoc(docRef, {
-        balance: newBalance,
+        classesRemaining: classesRemaining,
         updatedAt: new Date().toISOString(),
       });
     } catch (error) {
-      console.error('Error updating balance:', error);
+      console.error('Error updating classes remaining:', error);
+      throw error;
+    }
+  },
+
+  // Добавить занятия клиенту (покупка пакета)
+  async addClasses(id: string, classesCount: number): Promise<void> {
+    try {
+      const client = await this.getClientById(id);
+      if (!client) throw new Error('Клиент не найден');
+      
+      const newClassesRemaining = client.classesRemaining + classesCount;
+      await this.updateClassesRemaining(id, newClassesRemaining);
+    } catch (error) {
+      console.error('Error adding classes:', error);
+      throw error;
+    }
+  },
+
+  // Списать одно занятие
+  async deductClass(id: string): Promise<void> {
+    try {
+      const client = await this.getClientById(id);
+      if (!client) throw new Error('Клиент не найден');
+      
+      if (client.classesRemaining <= 0) {
+        throw new Error('У клиента нет доступных занятий');
+      }
+      
+      const newClassesRemaining = client.classesRemaining - 1;
+      await this.updateClassesRemaining(id, newClassesRemaining);
+    } catch (error) {
+      console.error('Error deducting class:', error);
       throw error;
     }
   },

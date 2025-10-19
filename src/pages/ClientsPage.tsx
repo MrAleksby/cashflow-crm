@@ -95,11 +95,11 @@ const ClientsPage: React.FC = () => {
                       </p>
                     </div>
                     <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      client.balance > 0 
+                      client.classesRemaining > 0 
                         ? 'bg-green-100 text-green-700' 
                         : 'bg-red-100 text-red-700'
                     }`}>
-                      {formatCurrency(client.balance)}
+                      {client.classesRemaining} {client.classesRemaining === 1 ? 'занятие' : 'занятий'}
                     </div>
                   </div>
 

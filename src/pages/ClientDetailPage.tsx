@@ -14,7 +14,8 @@ const ClientDetailPage: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showAddBalance, setShowAddBalance] = useState(false);
+  const [showBuyClasses, setShowBuyClasses] = useState(false);
+  const [classesCount, setClassesCount] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
 
@@ -40,7 +41,7 @@ const ClientDetailPage: React.FC = () => {
     }
   };
 
-  const handleAddBalance = async (e: React.FormEvent) => {
+  const handleBuyClasses = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (saving) return; // Защита от повторного клика
@@ -48,25 +49,37 @@ const ClientDetailPage: React.FC = () => {
 
     try {
       setSaving(true);
+      const classesNum = Number(classesCount);
       const amountNum = Number(amount);
-      const newBalance = client.balance + amountNum;
       
-      await clientService.updateBalance(id, newBalance);
+      if (classesNum <= 0) {
+        alert('Количество занятий должно быть больше 0');
+        return;
+      }
+
+      if (amountNum < 0) {
+        alert('Сумма не может быть отрицательной');
+        return;
+      }
+      
+      await clientService.addClasses(id, classesNum);
       await transactionService.createTransaction({
         clientId: id,
         type: 'income',
         amount: amountNum,
-        description: description || 'Пополнение баланса',
+        classesCount: classesNum,
+        description: description || `Покупка ${classesNum} занятий за ${formatCurrency(amountNum)}`,
         date: new Date().toISOString()
       });
 
+      setClassesCount('');
       setAmount('');
       setDescription('');
-      setShowAddBalance(false);
+      setShowBuyClasses(false);
       await loadData(id);
     } catch (error) {
-      console.error('Error adding balance:', error);
-      alert('Ошибка при пополнении баланса');
+      console.error('Error buying classes:', error);
+      alert('Ошибка при покупке занятий');
     } finally {
       setSaving(false);
     }
@@ -209,45 +222,57 @@ const ClientDetailPage: React.FC = () => {
             )}
           </div>
 
-          {/* Баланс и транзакции */}
+          {/* Занятия и транзакции */}
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Баланс</h2>
+              <h2 className="text-xl font-semibold mb-4">Доступные занятия</h2>
               <div className={`text-3xl font-bold mb-4 ${
-                client.balance > 0 ? 'text-green-600' : 'text-red-600'
+                client.classesRemaining > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
-                {formatCurrency(client.balance)}
+                {client.classesRemaining} {client.classesRemaining === 1 ? 'занятие' : 'занятий'}
               </div>
               
-              {!showAddBalance ? (
+              {!showBuyClasses ? (
                 <button
-                  onClick={() => setShowAddBalance(true)}
+                  onClick={() => setShowBuyClasses(true)}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition"
                 >
-                  + Пополнить баланс
+                  💳 Купить занятия
                 </button>
               ) : (
-                <form onSubmit={handleAddBalance} className="space-y-3">
+                <form onSubmit={handleBuyClasses} className="space-y-3">
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Сумма</label>
+                    <label className="block text-sm text-gray-600 mb-1">Количество занятий</label>
+                    <input
+                      type="number"
+                      value={classesCount}
+                      onChange={(e) => setClassesCount(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      placeholder="Например: 4"
+                      required
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Сумма оплаты (сум)</label>
                     <input
                       type="number"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                      placeholder="Введите сумму"
+                      placeholder="Например: 1250000"
                       required
                       min="0"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Описание</label>
+                    <label className="block text-sm text-gray-600 mb-1">Описание (необязательно)</label>
                     <input
                       type="text"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                      placeholder="Необязательно"
+                      placeholder="Например: Пакет на месяц"
                     />
                   </div>
                   <div className="flex space-x-2">
@@ -256,13 +281,14 @@ const ClientDetailPage: React.FC = () => {
                       disabled={saving}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {saving ? 'Пополнение...' : 'Пополнить'}
+                      {saving ? 'Оформление...' : 'Купить'}
                     </button>
                     <button
                       type="button"
                       disabled={saving}
                       onClick={() => {
-                        setShowAddBalance(false);
+                        setShowBuyClasses(false);
+                        setClassesCount('');
                         setAmount('');
                         setDescription('');
                       }}
@@ -283,11 +309,21 @@ const ClientDetailPage: React.FC = () => {
                     <div key={transaction.id} className="border-l-4 pl-3 py-2"
                          style={{ borderColor: transaction.type === 'income' ? '#10b981' : '#ef4444' }}>
                       <div className="flex justify-between items-start mb-1">
-                        <p className={`font-semibold ${
-                          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                        </p>
+                        <div>
+                          <p className={`font-semibold ${
+                            transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {transaction.type === 'income' 
+                              ? `+${transaction.classesCount || 0} занятий` 
+                              : `-1 занятие`
+                            }
+                          </p>
+                          {transaction.amount > 0 && (
+                            <p className="text-xs text-gray-600">
+                              {formatCurrency(transaction.amount)}
+                            </p>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500">
                           {format(new Date(transaction.date), 'dd.MM.yyyy HH:mm')}
                         </p>

@@ -11,7 +11,7 @@ const ClientFormPage: React.FC = () => {
   const isEdit = Boolean(id);
 
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [balance, setBalance] = useState(0);
+  const [classesRemaining, setClassesRemaining] = useState(0);
   const [campaignSource, setCampaignSource] = useState('');
   const [children, setChildren] = useState<Child[]>([]);
   const [parents, setParents] = useState<Parent[]>([]);
@@ -40,7 +40,7 @@ const ClientFormPage: React.FC = () => {
       const client = await clientService.getClientById(clientId);
       if (client) {
         setPhoneNumber(client.phoneNumber);
-        setBalance(client.balance);
+        setClassesRemaining(client.classesRemaining);
         setCampaignSource(client.campaignSource);
         setChildren(client.children);
         setParents(client.parents);
@@ -72,7 +72,7 @@ const ClientFormPage: React.FC = () => {
 
       const clientData = {
         phoneNumber,
-        balance,
+        classesRemaining,
         campaignSource,
         children: children.map((child) => 
           child.id ? child : {
@@ -169,15 +169,19 @@ const ClientFormPage: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Начальный баланс (сум)
+              Начальное количество занятий
             </label>
             <input
               type="number"
-              value={balance}
-              onChange={(e) => setBalance(Number(e.target.value))}
+              value={classesRemaining}
+              onChange={(e) => setClassesRemaining(Number(e.target.value))}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              placeholder="Например: 0"
               min="0"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Обычно оставляют 0, клиент купит занятия потом
+            </p>
           </div>
 
           <div>
