@@ -21,12 +21,16 @@ export const classService = {
   // Получить все занятия
   async getAllClasses(): Promise<ClassSession[]> {
     try {
-      const q = query(collection(db, CLASSES_COLLECTION), orderBy('date', 'desc'));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const querySnapshot = await getDocs(collection(db, CLASSES_COLLECTION));
+      const classes = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as ClassSession));
+      
+      // Сортируем на клиенте
+      return classes.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
     } catch (error) {
       console.error('Error getting classes:', error);
       throw error;
@@ -38,14 +42,16 @@ export const classService = {
     try {
       const q = query(
         collection(db, CLASSES_COLLECTION),
-        where('date', '==', date),
-        orderBy('time', 'asc')
+        where('date', '==', date)
       );
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const classes = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as ClassSession));
+      
+      // Сортируем на клиенте
+      return classes.sort((a, b) => a.time.localeCompare(b.time));
     } catch (error) {
       console.error('Error getting classes by date:', error);
       throw error;

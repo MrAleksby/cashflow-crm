@@ -18,12 +18,16 @@ export const campaignService = {
   // Получить все кампании
   async getAllCampaigns(): Promise<Campaign[]> {
     try {
-      const q = query(collection(db, CAMPAIGNS_COLLECTION), orderBy('createdAt', 'desc'));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const querySnapshot = await getDocs(collection(db, CAMPAIGNS_COLLECTION));
+      const campaigns = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Campaign));
+      
+      // Сортируем на клиенте
+      return campaigns.sort((a, b) => 
+        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
     } catch (error) {
       console.error('Error getting campaigns:', error);
       throw error;

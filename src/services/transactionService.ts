@@ -84,15 +84,16 @@ export const transactionService = {
   // Получить все транзакции
   async getAllTransactions(): Promise<Transaction[]> {
     try {
-      const q = query(
-        collection(db, TRANSACTIONS_COLLECTION),
-        orderBy('createdAt', 'desc')
-      );
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const querySnapshot = await getDocs(collection(db, TRANSACTIONS_COLLECTION));
+      const transactions = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Transaction));
+      
+      // Сортируем на клиенте
+      return transactions.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     } catch (error) {
       console.error('Error getting all transactions:', error);
       throw error;

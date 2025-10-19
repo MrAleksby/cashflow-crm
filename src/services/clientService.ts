@@ -18,12 +18,16 @@ export const clientService = {
   // Получить всех клиентов
   async getAllClients(): Promise<Client[]> {
     try {
-      const q = query(collection(db, CLIENTS_COLLECTION), orderBy('createdAt', 'desc'));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({
+      const querySnapshot = await getDocs(collection(db, CLIENTS_COLLECTION));
+      const clients = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as Client));
+      
+      // Сортируем на клиенте
+      return clients.sort((a, b) => 
+        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
     } catch (error) {
       console.error('Error getting clients:', error);
       throw error;
