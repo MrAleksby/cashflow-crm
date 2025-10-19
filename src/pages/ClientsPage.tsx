@@ -39,9 +39,6 @@ const ClientsPage: React.FC = () => {
     return `+998 ${phone}`;
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('uz-UZ').format(amount) + ' сум';
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">

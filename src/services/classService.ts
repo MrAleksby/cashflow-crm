@@ -7,8 +7,7 @@ import {
   getDocs,
   getDoc,
   query,
-  where,
-  orderBy
+  where
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { ClassSession } from '../types';

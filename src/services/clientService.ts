@@ -5,9 +5,7 @@ import {
   deleteDoc,
   doc,
   getDocs,
-  getDoc,
-  query,
-  orderBy
+  getDoc
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Client } from '../types';
