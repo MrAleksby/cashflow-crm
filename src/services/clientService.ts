@@ -17,10 +17,14 @@ export const clientService = {
   async getAllClients(): Promise<Client[]> {
     try {
       const querySnapshot = await getDocs(collection(db, CLIENTS_COLLECTION));
-      const clients = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Client));
+      const clients = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          classesRemaining: data.classesRemaining ?? 0 // По умолчанию 0 для старых записей
+        } as Client;
+      });
       
       // Сортируем на клиенте
       return clients.sort((a, b) => 
@@ -38,7 +42,12 @@ export const clientService = {
       const docRef = doc(db, CLIENTS_COLLECTION, id);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        return { id: docSnap.id, ...docSnap.data() } as Client;
+        const data = docSnap.data();
+        return { 
+          id: docSnap.id, 
+          ...data,
+          classesRemaining: data.classesRemaining ?? 0 // По умолчанию 0 для старых записей
+        } as Client;
       }
       return null;
     } catch (error) {
