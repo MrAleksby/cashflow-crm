@@ -151,18 +151,25 @@ export const classService = {
         return reg;
       });
 
-      // Списываем одно занятие
-      await clientService.deductClass(clientId);
+      // Проверяем, есть ли уже другие дети этого клиента, которые пришли на это занятие
+      const clientChildrenOnThisClass = classDoc.registeredChildren.filter(reg => 
+        reg.clientId === clientId && reg.attended
+      );
 
-      // Создаем транзакцию
-      await transactionService.createTransaction({
-        clientId,
-        type: 'expense',
-        amount: 0, // списание занятия, без оплаты
-        classesCount: 1,
-        description: `Списано занятие ${classDoc.date} ${classDoc.time}`,
-        date: new Date().toISOString()
-      });
+      // Списываем занятие только если это первый ребенок клиента на этом занятии
+      if (clientChildrenOnThisClass.length === 0) {
+        await clientService.deductClass(clientId);
+
+        // Создаем транзакцию только один раз за занятие
+        await transactionService.createTransaction({
+          clientId,
+          type: 'expense',
+          amount: 0, // списание занятия, без оплаты
+          classesCount: 1,
+          description: `Списано занятие ${classDoc.date} ${classDoc.time}`,
+          date: new Date().toISOString()
+        });
+      }
 
       // Обновляем занятие
       await this.updateClass(classId, {
@@ -195,18 +202,25 @@ export const classService = {
         return reg;
       });
 
-      // Возвращаем одно занятие на баланс
-      await clientService.addClasses(clientId, 1);
+      // Проверяем, есть ли еще другие дети этого клиента, которые пришли на это занятие
+      const remainingAttendedChildren = updatedRegistrations.filter(reg => 
+        reg.clientId === clientId && reg.attended
+      );
 
-      // Создаем обратную транзакцию
-      await transactionService.createTransaction({
-        clientId,
-        type: 'income',
-        amount: 0,
-        classesCount: 1,
-        description: `Отменено посещение ${classDoc.date} ${classDoc.time}`,
-        date: new Date().toISOString()
-      });
+      // Возвращаем занятие только если это был последний ребенок клиента на занятии
+      if (remainingAttendedChildren.length === 0) {
+        await clientService.addClasses(clientId, 1);
+
+        // Создаем обратную транзакцию только один раз
+        await transactionService.createTransaction({
+          clientId,
+          type: 'income',
+          amount: 0,
+          classesCount: 1,
+          description: `Отменено посещение ${classDoc.date} ${classDoc.time}`,
+          date: new Date().toISOString()
+        });
+      }
 
       // Обновляем занятие
       await this.updateClass(classId, {
