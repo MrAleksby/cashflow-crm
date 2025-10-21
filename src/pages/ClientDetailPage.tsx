@@ -180,6 +180,12 @@ const ClientDetailPage: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Карточка клиента</h1>
           <div className="flex space-x-3">
+            <button
+              onClick={() => id && loadData(id)}
+              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md transition"
+            >
+              🔄 Обновить данные
+            </button>
             <Link
               to={`/clients/${id}/edit`}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition"
