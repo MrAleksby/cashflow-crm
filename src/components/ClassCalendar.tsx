@@ -32,7 +32,7 @@ const ClassCalendar: React.FC<ClassCalendarProps> = ({
       endDate.setHours(startDate.getHours() + 1); // 1 час занятие по умолчанию
       
       return {
-        title: `Занятие (${classSession.registeredChildren.length} детей)`,
+        title: `${classSession.time} - Занятие (${classSession.registeredChildren.length} детей)`,
         start: startDate,
         end: endDate,
         resource: classSession,
