@@ -174,6 +174,50 @@ export const classService = {
     }
   },
 
+  // Отменить посещение и вернуть занятие на баланс
+  async cancelAttendance(
+    classId: string,
+    clientId: string,
+    childId: string
+  ): Promise<void> {
+    try {
+      const classDoc = await this.getClassById(classId);
+      if (!classDoc) throw new Error('Занятие не найдено');
+
+      const client = await clientService.getClientById(clientId);
+      if (!client) throw new Error('Клиент не найден');
+
+      // Обновляем статус посещения
+      const updatedRegistrations = classDoc.registeredChildren.map(reg => {
+        if (reg.clientId === clientId && reg.childId === childId) {
+          return { ...reg, attended: false, paid: false };
+        }
+        return reg;
+      });
+
+      // Возвращаем одно занятие на баланс
+      await clientService.addClasses(clientId, 1);
+
+      // Создаем обратную транзакцию
+      await transactionService.createTransaction({
+        clientId,
+        type: 'income',
+        amount: 0,
+        classesCount: 1,
+        description: `Отменено посещение ${classDoc.date} ${classDoc.time}`,
+        date: new Date().toISOString()
+      });
+
+      // Обновляем занятие
+      await this.updateClass(classId, {
+        registeredChildren: updatedRegistrations
+      });
+    } catch (error) {
+      console.error('Error canceling attendance:', error);
+      throw error;
+    }
+  },
+
   // Получить занятие по ID
   async getClassById(id: string): Promise<ClassSession | null> {
     try {

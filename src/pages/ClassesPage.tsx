@@ -239,6 +239,48 @@ const ClassesPage: React.FC = () => {
     }
   };
 
+  const handleCancelAttendance = async (classId: string, clientId: string, childId: string) => {
+    if (!window.confirm('Отменить посещение и вернуть занятие на баланс?')) {
+      return;
+    }
+
+    try {
+      await classService.cancelAttendance(classId, clientId, childId);
+      
+      // Обновляем state локально
+      setClasses(prevClasses => prevClasses.map(cls => {
+        if (cls.id === classId) {
+          return {
+            ...cls,
+            registeredChildren: cls.registeredChildren.map(reg => {
+              if (reg.clientId === clientId && reg.childId === childId) {
+                return { ...reg, attended: false, paid: false };
+              }
+              return reg;
+            })
+          };
+        }
+        return cls;
+      }));
+      
+      // Возвращаем баланс клиента локально
+      setClients(prevClients => prevClients.map(client => {
+        if (client.id === clientId) {
+          return {
+            ...client,
+            classesRemaining: (client.classesRemaining ?? 0) + 1
+          };
+        }
+        return client;
+      }));
+    } catch (error: any) {
+      console.error('Error canceling attendance:', error);
+      alert(error.message || 'Ошибка при отмене посещения');
+      // При ошибке перезагружаем данные
+      loadData();
+    }
+  };
+
   // Получаем список всех детей со всех клиентов
   const getAllChildren = () => {
     const allChildren: Array<{ 
@@ -517,7 +559,7 @@ const ClassesPage: React.FC = () => {
                             </p>
                           </div>
                           
-                          {!registration.attended && (
+                          {!registration.attended ? (
                             <button
                               onClick={() => handleMarkAttendance(
                                 classSession.id,
@@ -527,6 +569,17 @@ const ClassesPage: React.FC = () => {
                               className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-4 rounded-md text-sm transition"
                             >
                               Отметить посещение
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleCancelAttendance(
+                                classSession.id,
+                                registration.clientId,
+                                registration.childId
+                              )}
+                              className="bg-orange-600 hover:bg-orange-700 text-white py-1 px-4 rounded-md text-sm transition"
+                            >
+                              ↩️ Отменить
                             </button>
                           )}
                         </div>
