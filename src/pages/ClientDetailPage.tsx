@@ -227,9 +227,9 @@ const ClientDetailPage: React.FC = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold mb-4">Доступные занятия</h2>
               <div className={`text-3xl font-bold mb-4 ${
-                client.classesRemaining > 0 ? 'text-green-600' : 'text-red-600'
+                (client.classesRemaining ?? 0) > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
-                {client.classesRemaining} {client.classesRemaining === 1 ? 'занятие' : 'занятий'}
+                {client.classesRemaining ?? 0} {(client.classesRemaining ?? 0) === 1 ? 'занятие' : 'занятий'}
               </div>
               
               {!showBuyClasses ? (

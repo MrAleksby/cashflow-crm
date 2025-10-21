@@ -40,7 +40,7 @@ const ClientFormPage: React.FC = () => {
       const client = await clientService.getClientById(clientId);
       if (client) {
         setPhoneNumber(client.phoneNumber);
-        setClassesRemaining(client.classesRemaining);
+        setClassesRemaining(client.classesRemaining ?? 0);
         setCampaignSource(client.campaignSource);
         setChildren(client.children);
         setParents(client.parents);
