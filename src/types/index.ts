@@ -40,7 +40,6 @@ export interface ClassSession {
   id: string;
   date: string; // дата занятия
   time: string; // время занятия
-  price: number; // стоимость занятия
   registeredChildren: {
     clientId: string;
     childId: string;

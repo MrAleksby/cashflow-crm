@@ -21,7 +21,6 @@ const ClassesPage: React.FC = () => {
   // Форма создания/редактирования занятия
   const [newClassDate, setNewClassDate] = useState('');
   const [newClassTime, setNewClassTime] = useState('');
-  const [newClassPrice, setNewClassPrice] = useState('');
 
   // Форма записи ребенка
   const [selectedChildId, setSelectedChildId] = useState('');
@@ -58,22 +57,19 @@ const ClassesPage: React.FC = () => {
         // Обновляем существующее занятие
         await classService.updateClass(editingClassId, {
           date: newClassDate,
-          time: newClassTime,
-          price: Number(newClassPrice)
+          time: newClassTime
         });
       } else {
         // Создаем новое занятие
         await classService.createClass({
           date: newClassDate,
           time: newClassTime,
-          price: Number(newClassPrice),
           registeredChildren: []
         });
       }
 
       setNewClassDate('');
       setNewClassTime('');
-      setNewClassPrice('');
       setShowCreateClass(false);
       setEditingClassId(null);
       await loadData();
@@ -89,7 +85,6 @@ const ClassesPage: React.FC = () => {
     setEditingClassId(classSession.id);
     setNewClassDate(classSession.date);
     setNewClassTime(classSession.time);
-    setNewClassPrice(classSession.price.toString());
     setShowCreateClass(true);
     setViewMode('list'); // Переключаемся на список
   };
@@ -98,7 +93,6 @@ const ClassesPage: React.FC = () => {
     setEditingClassId(null);
     setNewClassDate('');
     setNewClassTime('');
-    setNewClassPrice('');
     setShowCreateClass(false);
   };
 
@@ -169,10 +163,6 @@ const ClassesPage: React.FC = () => {
       console.error('Error marking attendance:', error);
       alert(error.message || 'Ошибка при отметке посещения');
     }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('uz-UZ').format(amount) + ' сум';
   };
 
   // Получаем список всех детей со всех клиентов
@@ -275,7 +265,7 @@ const ClassesPage: React.FC = () => {
               {editingClassId ? 'Редактировать занятие' : 'Новое занятие'}
             </h2>
             <form onSubmit={handleCreateClass} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Дата
@@ -299,20 +289,6 @@ const ClassesPage: React.FC = () => {
                     onChange={(e) => setNewClassTime(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                     required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Стоимость (сум)
-                  </label>
-                  <input
-                    type="number"
-                    value={newClassPrice}
-                    onChange={(e) => setNewClassPrice(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                    required
-                    min="0"
                   />
                 </div>
               </div>
@@ -368,7 +344,6 @@ const ClassesPage: React.FC = () => {
                       {format(new Date(classSession.date), 'dd MMMM yyyy', { locale: ru })}
                     </h3>
                     <p className="text-gray-600">Время: {classSession.time}</p>
-                    <p className="text-blue-600 font-semibold">{formatCurrency(classSession.price)}</p>
                   </div>
                   
                   <div className="flex space-x-2">
