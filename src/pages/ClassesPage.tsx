@@ -187,7 +187,6 @@ const ClassesPage: React.FC = () => {
       
       setSelectedChildId('');
       setShowRegisterChild(null);
-      alert('✅ Ребенок успешно записан на занятие');
     } catch (error) {
       console.error('Error registering child:', error);
       alert('Ошибка при записи ребенка');
