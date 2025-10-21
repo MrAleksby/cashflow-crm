@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { clientService } from '../services/clientService';
 import { transactionService } from '../services/transactionService';
-import type { Client, Transaction } from '../types';
+import { classService } from '../services/classService';
+import type { Client, Transaction, ClassSession } from '../types';
 import Navbar from '../components/Navbar';
 import { format } from 'date-fns';
 
@@ -12,6 +13,7 @@ const ClientDetailPage: React.FC = () => {
   
   const [client, setClient] = useState<Client | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [classes, setClasses] = useState<ClassSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showBuyClasses, setShowBuyClasses] = useState(false);
@@ -28,17 +30,38 @@ const ClientDetailPage: React.FC = () => {
   const loadData = async (clientId: string) => {
     try {
       setLoading(true);
-      const [clientData, transactionsData] = await Promise.all([
+      const [clientData, transactionsData, classesData] = await Promise.all([
         clientService.getClientById(clientId),
-        transactionService.getClientTransactions(clientId)
+        transactionService.getClientTransactions(clientId),
+        classService.getAllClasses()
       ]);
       setClient(clientData);
       setTransactions(transactionsData);
+      setClasses(classesData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Подсчитываем количество посещенных занятий для каждого ребенка
+  const getChildAttendanceStats = (childId: string) => {
+    let attended = 0;
+    let registered = 0;
+
+    classes.forEach(classSession => {
+      classSession.registeredChildren.forEach(reg => {
+        if (reg.childId === childId && reg.clientId === id) {
+          registered++;
+          if (reg.attended) {
+            attended++;
+          }
+        }
+      });
+    });
+
+    return { attended, registered };
   };
 
   const handleBuyClasses = async (e: React.FormEvent) => {
@@ -166,29 +189,57 @@ const ClientDetailPage: React.FC = () => {
               <h2 className="text-xl font-semibold mb-4">Дети</h2>
               {client.children.length > 0 ? (
                 <div className="space-y-4">
-                  {client.children.map(child => (
-                    <div key={child.id} className="border border-gray-200 rounded-lg p-4">
-                      <h3 className="font-semibold text-lg mb-2">{child.name}</h3>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div>
-                          <p className="text-gray-500">Возраст</p>
-                          <p>{child.age} лет</p>
+                  {client.children.map(child => {
+                    const stats = getChildAttendanceStats(child.id);
+                    return (
+                      <div key={child.id} className="border border-gray-200 rounded-lg p-4">
+                        <h3 className="font-semibold text-lg mb-2">{child.name}</h3>
+                        <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+                          <div>
+                            <p className="text-gray-500">Возраст</p>
+                            <p>{child.age} лет</p>
+                          </div>
+                          {child.school && (
+                            <div>
+                              <p className="text-gray-500">Школа</p>
+                              <p>{child.school}</p>
+                            </div>
+                          )}
+                          {child.birthDate && (
+                            <div>
+                              <p className="text-gray-500">Дата рождения</p>
+                              <p>{format(new Date(child.birthDate), 'dd.MM.yyyy')}</p>
+                            </div>
+                          )}
                         </div>
-                        {child.school && (
-                          <div>
-                            <p className="text-gray-500">Школа</p>
-                            <p>{child.school}</p>
+                        
+                        {/* Статистика посещений */}
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className="text-center">
+                                <p className="text-2xl font-bold text-green-600">{stats.attended}</p>
+                                <p className="text-xs text-gray-500">Посетил</p>
+                              </div>
+                              <div className="text-gray-300">/</div>
+                              <div className="text-center">
+                                <p className="text-2xl font-bold text-blue-600">{stats.registered}</p>
+                                <p className="text-xs text-gray-500">Записан</p>
+                              </div>
+                            </div>
+                            {stats.registered > 0 && (
+                              <div className="text-right">
+                                <p className="text-lg font-semibold text-gray-700">
+                                  {Math.round((stats.attended / stats.registered) * 100)}%
+                                </p>
+                                <p className="text-xs text-gray-500">Посещаемость</p>
+                              </div>
+                            )}
                           </div>
-                        )}
-                        {child.birthDate && (
-                          <div>
-                            <p className="text-gray-500">Дата рождения</p>
-                            <p>{format(new Date(child.birthDate), 'dd.MM.yyyy')}</p>
-                          </div>
-                        )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-gray-400">Нет информации о детях</p>
