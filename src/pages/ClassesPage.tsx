@@ -59,23 +59,43 @@ const ClassesPage: React.FC = () => {
           date: newClassDate,
           time: newClassTime
         });
+        
+        // Обновляем state локально
+        setClasses(prevClasses => prevClasses.map(cls => {
+          if (cls.id === editingClassId) {
+            return { ...cls, date: newClassDate, time: newClassTime };
+          }
+          return cls;
+        }));
       } else {
         // Создаем новое занятие
-        await classService.createClass({
+        const newClassId = await classService.createClass({
           date: newClassDate,
           time: newClassTime,
           registeredChildren: []
         });
+        
+        // Добавляем новое занятие в state локально
+        const newClass: ClassSession = {
+          id: newClassId,
+          date: newClassDate,
+          time: newClassTime,
+          registeredChildren: [],
+          createdAt: new Date().toISOString()
+        };
+        
+        setClasses(prevClasses => [newClass, ...prevClasses]);
       }
 
       setNewClassDate('');
       setNewClassTime('');
       setShowCreateClass(false);
       setEditingClassId(null);
-      await loadData();
     } catch (error) {
       console.error('Error saving class:', error);
       alert('Ошибка при сохранении занятия');
+      // При ошибке перезагружаем данные
+      loadData();
     } finally {
       setSavingClass(false);
     }
@@ -103,10 +123,16 @@ const ClassesPage: React.FC = () => {
 
     try {
       await classService.deleteClass(classId);
-      await loadData();
+      
+      // Удаляем занятие из state локально
+      setClasses(prevClasses => prevClasses.filter(cls => cls.id !== classId));
+      
+      alert('✅ Занятие удалено');
     } catch (error) {
       console.error('Error deleting class:', error);
       alert('Ошибка при удалении занятия');
+      // При ошибке перезагружаем данные
+      loadData();
     }
   };
 
@@ -139,15 +165,34 @@ const ClassesPage: React.FC = () => {
 
       await classService.registerChild(classId, foundClient.id, foundChild.id, foundChild.name);
       
+      // Обновляем state локально без перезагрузки всех данных
+      setClasses(prevClasses => prevClasses.map(cls => {
+        if (cls.id === classId) {
+          return {
+            ...cls,
+            registeredChildren: [
+              ...cls.registeredChildren,
+              {
+                clientId: foundClient!.id,
+                childId: foundChild!.id,
+                childName: foundChild!.name,
+                attended: false,
+                paid: false
+              }
+            ]
+          };
+        }
+        return cls;
+      }));
+      
       setSelectedChildId('');
       setShowRegisterChild(null);
-      // Показываем уведомление сразу
       alert('✅ Ребенок успешно записан на занятие');
-      // Обновляем данные в фоне
-      loadData();
     } catch (error) {
       console.error('Error registering child:', error);
       alert('Ошибка при записи ребенка');
+      // При ошибке перезагружаем данные
+      loadData();
     } finally {
       setSavingRegistration(false);
     }
@@ -160,13 +205,40 @@ const ClassesPage: React.FC = () => {
 
     try {
       await classService.markAttendance(classId, clientId, childId);
-      // Показываем уведомление сразу
+      
+      // Обновляем state локально без перезагрузки всех данных
+      setClasses(prevClasses => prevClasses.map(cls => {
+        if (cls.id === classId) {
+          return {
+            ...cls,
+            registeredChildren: cls.registeredChildren.map(reg => {
+              if (reg.clientId === clientId && reg.childId === childId) {
+                return { ...reg, attended: true, paid: true };
+              }
+              return reg;
+            })
+          };
+        }
+        return cls;
+      }));
+      
+      // Обновляем баланс клиента локально
+      setClients(prevClients => prevClients.map(client => {
+        if (client.id === clientId) {
+          return {
+            ...client,
+            classesRemaining: Math.max(0, (client.classesRemaining ?? 0) - 1)
+          };
+        }
+        return client;
+      }));
+      
       alert('✅ Посещение отмечено, занятие списано!');
-      // Обновляем данные в фоне
-      loadData();
     } catch (error: any) {
       console.error('Error marking attendance:', error);
       alert(error.message || 'Ошибка при отметке посещения');
+      // При ошибке перезагружаем данные
+      loadData();
     }
   };
 
