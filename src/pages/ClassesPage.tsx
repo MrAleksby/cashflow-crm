@@ -198,10 +198,6 @@ const ClassesPage: React.FC = () => {
   };
 
   const handleMarkAttendance = async (classId: string, clientId: string, childId: string) => {
-    if (!window.confirm('Отметить посещение и списать деньги с баланса?')) {
-      return;
-    }
-
     try {
       await classService.markAttendance(classId, clientId, childId);
       
