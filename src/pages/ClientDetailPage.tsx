@@ -102,10 +102,6 @@ const ClientDetailPage: React.FC = () => {
     return new Intl.NumberFormat('uz-UZ').format(amount) + ' сум';
   };
 
-  const formatPhoneNumber = (phone: string) => {
-    return `+998 ${phone}`;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -154,21 +150,17 @@ const ClientDetailPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Основная информация */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Основная информация</h2>
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm text-gray-500">Телефон</p>
-                  <p className="text-lg font-semibold">{formatPhoneNumber(client.phoneNumber)}</p>
-                </div>
-                {client.campaignSource && (
+            {client.campaignSource && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h2 className="text-xl font-semibold mb-4">Основная информация</h2>
+                <div className="space-y-3">
                   <div>
-                    <p className="text-sm text-gray-500">Источник</p>
+                    <p className="text-sm text-gray-500">Рекламная кампания</p>
                     <p className="text-lg">{client.campaignSource}</p>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold mb-4">Дети</h2>
