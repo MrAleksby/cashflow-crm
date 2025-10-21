@@ -141,7 +141,10 @@ const ClassesPage: React.FC = () => {
       
       setSelectedChildId('');
       setShowRegisterChild(null);
-      await loadData();
+      // Показываем уведомление сразу
+      alert('✅ Ребенок успешно записан на занятие');
+      // Обновляем данные в фоне
+      loadData();
     } catch (error) {
       console.error('Error registering child:', error);
       alert('Ошибка при записи ребенка');
@@ -157,8 +160,10 @@ const ClassesPage: React.FC = () => {
 
     try {
       await classService.markAttendance(classId, clientId, childId);
+      // Показываем уведомление сразу
+      alert('✅ Посещение отмечено, занятие списано!');
+      // Обновляем данные в фоне
       loadData();
-      alert('Посещение отмечено, деньги списаны');
     } catch (error: any) {
       console.error('Error marking attendance:', error);
       alert(error.message || 'Ошибка при отметке посещения');
