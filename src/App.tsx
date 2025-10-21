@@ -8,6 +8,7 @@ import ClientDetailPage from './pages/ClientDetailPage';
 import ClassesPage from './pages/ClassesPage';
 import CampaignsPage from './pages/CampaignsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import AdminPage from './pages/AdminPage';
 
 // Защищенный маршрут
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -79,6 +80,12 @@ const AppRoutes: React.FC = () => {
       <Route path="/analytics" element={
         <ProtectedRoute>
           <AnalyticsPage />
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/admin" element={
+        <ProtectedRoute>
+          <AdminPage />
         </ProtectedRoute>
       } />
       
