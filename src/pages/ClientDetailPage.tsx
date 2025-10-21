@@ -20,6 +20,7 @@ const ClientDetailPage: React.FC = () => {
   const [classesCount, setClassesCount] = useState('');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [classPrice, setClassPrice] = useState('175000'); // Стоимость одного занятия по умолчанию
 
   useEffect(() => {
     if (id) {
@@ -74,6 +75,7 @@ const ClientDetailPage: React.FC = () => {
       setSaving(true);
       const classesNum = Number(classesCount);
       const amountNum = Number(amount);
+      const pricePerClass = Number(classPrice);
       
       if (classesNum <= 0) {
         alert('Количество занятий должно быть больше 0');
@@ -84,20 +86,43 @@ const ClientDetailPage: React.FC = () => {
         alert('Сумма не может быть отрицательной');
         return;
       }
+
+      if (pricePerClass <= 0) {
+        alert('Стоимость занятия должна быть больше 0');
+        return;
+      }
       
+      // Рассчитываем ожидаемую стоимость и остаток
+      const expectedCost = classesNum * pricePerClass;
+      const overpayment = amountNum - expectedCost;
+      
+      // Добавляем занятия
       await clientService.addClasses(id, classesNum);
+      
+      // Если есть переплата, добавляем на денежный баланс
+      if (overpayment > 0) {
+        await clientService.addMoney(id, overpayment);
+      }
+      
+      // Создаем транзакцию
+      let transactionDescription = `Покупка ${classesNum} занятий за ${formatCurrency(amountNum)}`;
+      if (overpayment > 0) {
+        transactionDescription += ` (остаток ${formatCurrency(overpayment)} на баланс)`;
+      }
+      
       await transactionService.createTransaction({
         clientId: id,
         type: 'income',
         amount: amountNum,
         classesCount: classesNum,
-        description: description || `Покупка ${classesNum} занятий за ${formatCurrency(amountNum)}`,
+        description: description || transactionDescription,
         date: new Date().toISOString()
       });
 
       setClassesCount('');
       setAmount('');
       setDescription('');
+      setClassPrice('175000');
       setShowBuyClasses(false);
       await loadData(id);
     } catch (error) {
@@ -289,6 +314,23 @@ const ClientDetailPage: React.FC = () => {
                 {client.classesRemaining ?? 0} {(client.classesRemaining ?? 0) === 1 ? 'занятие' : 'занятий'}
               </div>
               
+              {/* Денежный баланс */}
+              {(client.moneyBalance ?? 0) > 0 && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-blue-600 font-medium">💰 Денежный баланс</p>
+                      <p className="text-lg font-bold text-blue-700">
+                        {formatCurrency(client.moneyBalance ?? 0)}
+                      </p>
+                    </div>
+                    <div className="text-blue-500">
+                      💳
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {!showBuyClasses ? (
                 <button
                   onClick={() => setShowBuyClasses(true)}
@@ -311,16 +353,38 @@ const ClientDetailPage: React.FC = () => {
                     />
                   </div>
                   <div>
+                    <label className="block text-sm text-gray-600 mb-1">Стоимость одного занятия (сум)</label>
+                    <input
+                      type="number"
+                      value={classPrice}
+                      onChange={(e) => setClassPrice(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      placeholder="Например: 175000"
+                      required
+                      min="1"
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm text-gray-600 mb-1">Сумма оплаты (сум)</label>
                     <input
                       type="number"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                      placeholder="Например: 1250000"
+                      placeholder="Например: 200000"
                       required
                       min="0"
                     />
+                    {classesCount && classPrice && amount && (
+                      <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
+                        <p>Ожидаемая стоимость: {formatCurrency(Number(classesCount) * Number(classPrice))}</p>
+                        {Number(amount) > Number(classesCount) * Number(classPrice) && (
+                          <p className="text-blue-600 font-medium">
+                            Остаток на баланс: {formatCurrency(Number(amount) - Number(classesCount) * Number(classPrice))}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm text-gray-600 mb-1">Описание (необязательно)</label>

@@ -11,6 +11,7 @@ const ClientFormPage: React.FC = () => {
   const isEdit = Boolean(id);
 
   const [classesRemaining, setClassesRemaining] = useState(0);
+  const [moneyBalance, setMoneyBalance] = useState(0);
   const [campaignSource, setCampaignSource] = useState('');
   const [children, setChildren] = useState<Child[]>([]);
   const [parents, setParents] = useState<Parent[]>([]);
@@ -47,6 +48,7 @@ const ClientFormPage: React.FC = () => {
       const client = await clientService.getClientById(clientId);
       if (client) {
         setClassesRemaining(client.classesRemaining ?? 0);
+        setMoneyBalance(client.moneyBalance ?? 0);
         setCampaignSource(client.campaignSource);
         setChildren(client.children);
         setParents(client.parents);
@@ -90,6 +92,7 @@ const ClientFormPage: React.FC = () => {
       const clientData = {
         phoneNumber,
         classesRemaining,
+        moneyBalance,
         campaignSource,
         children: children.map((child) => 
           child.id ? child : {
@@ -164,21 +167,40 @@ const ClientFormPage: React.FC = () => {
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Начальное количество занятий
-            </label>
-            <input
-              type="number"
-              value={classesRemaining}
-              onChange={(e) => setClassesRemaining(Number(e.target.value))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              placeholder="Например: 0"
-              min="0"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Обычно оставляют 0, клиент купит занятия потом
-            </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Начальное количество занятий
+              </label>
+              <input
+                type="number"
+                value={classesRemaining}
+                onChange={(e) => setClassesRemaining(Number(e.target.value))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder="Например: 0"
+                min="0"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Обычно оставляют 0, клиент купит занятия потом
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Денежный баланс (сум)
+              </label>
+              <input
+                type="number"
+                value={moneyBalance}
+                onChange={(e) => setMoneyBalance(Number(e.target.value))}
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder="Например: 0"
+                min="0"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Остаток денег на балансе клиента
+              </p>
+            </div>
           </div>
 
           <div>

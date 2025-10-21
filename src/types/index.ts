@@ -33,6 +33,7 @@ export interface Client {
   children: Child[];
   parents: Parent[];
   classesRemaining: number; // количество оставшихся занятий
+  moneyBalance: number; // остаток денег на балансе (в сумах)
   campaignSource: string; // рекламная кампания
   createdAt: string;
   updatedAt: string;

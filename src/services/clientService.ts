@@ -22,7 +22,8 @@ export const clientService = {
         return {
           id: doc.id,
           ...data,
-          classesRemaining: data.classesRemaining ?? 0 // По умолчанию 0 для старых записей
+          classesRemaining: data.classesRemaining ?? 0, // По умолчанию 0 для старых записей
+          moneyBalance: data.moneyBalance ?? 0 // По умолчанию 0 для старых записей
         } as Client;
       });
       
@@ -46,7 +47,8 @@ export const clientService = {
         return { 
           id: docSnap.id, 
           ...data,
-          classesRemaining: data.classesRemaining ?? 0 // По умолчанию 0 для старых записей
+          classesRemaining: data.classesRemaining ?? 0, // По умолчанию 0 для старых записей
+          moneyBalance: data.moneyBalance ?? 0 // По умолчанию 0 для старых записей
         } as Client;
       }
       return null;
@@ -150,6 +152,46 @@ export const clientService = {
       return clients.find(c => c.phoneNumber === phoneNumber) || null;
     } catch (error) {
       console.error('Error finding client:', error);
+      throw error;
+    }
+  },
+
+  // Добавить деньги на баланс
+  async addMoney(id: string, amount: number): Promise<void> {
+    try {
+      const client = await this.getClientById(id);
+      if (!client) throw new Error('Клиент не найден');
+      
+      const newMoneyBalance = client.moneyBalance + amount;
+      const docRef = doc(db, CLIENTS_COLLECTION, id);
+      await updateDoc(docRef, {
+        moneyBalance: newMoneyBalance,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error adding money:', error);
+      throw error;
+    }
+  },
+
+  // Списать деньги с баланса
+  async deductMoney(id: string, amount: number): Promise<void> {
+    try {
+      const client = await this.getClientById(id);
+      if (!client) throw new Error('Клиент не найден');
+      
+      if (client.moneyBalance < amount) {
+        throw new Error('Недостаточно средств на балансе');
+      }
+      
+      const newMoneyBalance = client.moneyBalance - amount;
+      const docRef = doc(db, CLIENTS_COLLECTION, id);
+      await updateDoc(docRef, {
+        moneyBalance: newMoneyBalance,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('Error deducting money:', error);
       throw error;
     }
   }
