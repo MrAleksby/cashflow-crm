@@ -231,8 +231,6 @@ const ClassesPage: React.FC = () => {
         }
         return client;
       }));
-      
-      alert('✅ Посещение отмечено, занятие списано!');
     } catch (error: any) {
       console.error('Error marking attendance:', error);
       alert(error.message || 'Ошибка при отметке посещения');
