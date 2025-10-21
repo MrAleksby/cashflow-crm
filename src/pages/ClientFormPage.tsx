@@ -18,6 +18,14 @@ const ClientFormPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // При создании нового клиента добавляем по умолчанию 1 ребенка и 1 родителя
+  useEffect(() => {
+    if (!isEdit) {
+      setChildren([{ id: '', name: '', birthDate: '', age: 0, school: '' }]);
+      setParents([{ id: '', name: '', phoneNumber: '', relation: '', birthDate: '' }]);
+    }
+  }, []); // Выполняется один раз при монтировании
+
   useEffect(() => {
     loadCampaigns();
     if (isEdit && id) {
