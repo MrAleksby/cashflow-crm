@@ -17,6 +17,7 @@ const ClassesPage: React.FC = () => {
   const [savingClass, setSavingClass] = useState(false);
   const [savingRegistration, setSavingRegistration] = useState(false);
   const [editingClassId, setEditingClassId] = useState<string | null>(null);
+  const [processingAttendance, setProcessingAttendance] = useState<Set<string>>(new Set());
   
   // Форма создания/редактирования занятия
   const [newClassDate, setNewClassDate] = useState('');
@@ -198,7 +199,17 @@ const ClassesPage: React.FC = () => {
   };
 
   const handleMarkAttendance = async (classId: string, clientId: string, childId: string) => {
+    const attendanceKey = `${classId}-${clientId}-${childId}`;
+    
+    // Проверяем, не обрабатывается ли уже это посещение
+    if (processingAttendance.has(attendanceKey)) {
+      return;
+    }
+
     try {
+      // Добавляем в список обрабатываемых
+      setProcessingAttendance(prev => new Set(prev).add(attendanceKey));
+      
       await classService.markAttendance(classId, clientId, childId);
       
       // Обновляем state локально без перезагрузки всех данных
@@ -232,6 +243,13 @@ const ClassesPage: React.FC = () => {
       alert(error.message || 'Ошибка при отметке посещения');
       // При ошибке перезагружаем данные
       loadData();
+    } finally {
+      // Убираем из списка обрабатываемых
+      setProcessingAttendance(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(attendanceKey);
+        return newSet;
+      });
     }
   };
 
@@ -562,9 +580,13 @@ const ClassesPage: React.FC = () => {
                                 registration.clientId,
                                 registration.childId
                               )}
-                              className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-4 rounded-md text-sm transition"
+                              disabled={processingAttendance.has(`${classSession.id}-${registration.clientId}-${registration.childId}`)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white py-1 px-4 rounded-md text-sm transition disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              Отметить посещение
+                              {processingAttendance.has(`${classSession.id}-${registration.clientId}-${registration.childId}`) 
+                                ? 'Обработка...' 
+                                : 'Отметить посещение'
+                              }
                             </button>
                           ) : (
                             <button
