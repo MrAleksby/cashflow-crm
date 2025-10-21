@@ -10,7 +10,6 @@ const ClientFormPage: React.FC = () => {
   const navigate = useNavigate();
   const isEdit = Boolean(id);
 
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [classesRemaining, setClassesRemaining] = useState(0);
   const [campaignSource, setCampaignSource] = useState('');
   const [children, setChildren] = useState<Child[]>([]);
@@ -39,7 +38,6 @@ const ClientFormPage: React.FC = () => {
     try {
       const client = await clientService.getClientById(clientId);
       if (client) {
-        setPhoneNumber(client.phoneNumber);
         setClassesRemaining(client.classesRemaining ?? 0);
         setCampaignSource(client.campaignSource);
         setChildren(client.children);
@@ -55,20 +53,30 @@ const ClientFormPage: React.FC = () => {
     e.preventDefault();
     
     if (saving) return; // Защита от повторного клика
-    
-    if (phoneNumber.length !== 9 || !/^\d+$/.test(phoneNumber)) {
-      setError('Номер телефона должен содержать 9 цифр');
-      return;
-    }
 
     if (children.length === 0) {
       setError('Добавьте хотя бы одного ребенка');
       return;
     }
 
+    if (parents.length === 0) {
+      setError('Добавьте хотя бы одного родителя с контактным номером');
+      return;
+    }
+
+    // Проверяем, что у первого родителя есть номер телефона
+    const firstParent = parents[0];
+    if (!firstParent.phoneNumber || firstParent.phoneNumber.length !== 9 || !/^\d+$/.test(firstParent.phoneNumber)) {
+      setError('У первого родителя должен быть корректный номер телефона (9 цифр)');
+      return;
+    }
+
     try {
       setError('');
       setSaving(true);
+
+      // Используем номер первого родителя как основной номер клиента
+      const phoneNumber = firstParent.phoneNumber;
 
       const clientData = {
         phoneNumber,
@@ -146,26 +154,6 @@ const ClientFormPage: React.FC = () => {
               {error}
             </div>
           )}
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Номер телефона *
-            </label>
-            <div className="flex">
-              <span className="inline-flex items-center px-3 text-gray-700 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md">
-                +998
-              </span>
-              <input
-                type="text"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 9))}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500"
-                placeholder="901234567"
-                maxLength={9}
-                required
-              />
-            </div>
-          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -276,8 +264,8 @@ const ClientFormPage: React.FC = () => {
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">Родители</h3>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold text-gray-800">Родители *</h3>
               <button
                 type="button"
                 onClick={addParent}
@@ -286,6 +274,9 @@ const ClientFormPage: React.FC = () => {
                 + Добавить родителя
               </button>
             </div>
+            <p className="text-xs text-blue-600 mb-4">
+              ℹ️ Номер телефона первого родителя будет использоваться как основной контакт
+            </p>
             
             {parents.map((parent, index) => (
               <div key={index} className="border border-gray-300 rounded-lg p-4 mb-4">
@@ -324,7 +315,9 @@ const ClientFormPage: React.FC = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm text-gray-600 mb-1">Номер телефона</label>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      Номер телефона{index === 0 ? ' *' : ''}
+                    </label>
                     <div className="flex">
                       <span className="inline-flex items-center px-3 text-gray-700 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-sm">
                         +998
@@ -336,6 +329,7 @@ const ClientFormPage: React.FC = () => {
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500"
                         placeholder="901234567"
                         maxLength={9}
+                        required={index === 0}
                       />
                     </div>
                   </div>
