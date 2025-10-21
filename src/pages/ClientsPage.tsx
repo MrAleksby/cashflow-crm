@@ -30,7 +30,11 @@ const ClientsPage: React.FC = () => {
     return (
       client.phoneNumber.includes(search) ||
       client.children.some(child => child.name.toLowerCase().includes(search)) ||
-      client.parents.some(parent => parent.name.toLowerCase().includes(search)) ||
+      client.parents.some(parent => 
+        parent.name.toLowerCase().includes(search) || 
+        parent.phoneNumber?.includes(search) ||
+        parent.relation?.toLowerCase().includes(search)
+      ) ||
       client.campaignSource.toLowerCase().includes(search)
     );
   });

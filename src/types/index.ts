@@ -11,6 +11,8 @@ export interface Child {
 export interface Parent {
   id: string;
   name: string;
+  phoneNumber: string; // номер телефона родителя
+  relation?: string; // отношение (мама, папа, бабушка и т.д.)
   birthDate: string;
 }
 

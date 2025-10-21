@@ -205,14 +205,28 @@ const ClientDetailPage: React.FC = () => {
 
             {client.parents.length > 0 && (
               <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold mb-4">Родители</h2>
+                <h2 className="text-xl font-semibold mb-4">Контактные лица</h2>
                 <div className="space-y-3">
                   {client.parents.map(parent => (
                     <div key={parent.id} className="border border-gray-200 rounded-lg p-4">
-                      <p className="font-semibold">{parent.name}</p>
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <p className="font-semibold text-lg">{parent.name}</p>
+                          {parent.relation && (
+                            <p className="text-sm text-blue-600">{parent.relation}</p>
+                          )}
+                        </div>
+                      </div>
+                      {parent.phoneNumber && (
+                        <p className="text-gray-800 mb-1">
+                          📞 <a href={`tel:+998${parent.phoneNumber}`} className="hover:text-blue-600">
+                            +998 {parent.phoneNumber}
+                          </a>
+                        </p>
+                      )}
                       {parent.birthDate && (
                         <p className="text-sm text-gray-600">
-                          Дата рождения: {format(new Date(parent.birthDate), 'dd.MM.yyyy')}
+                          🎂 {format(new Date(parent.birthDate), 'dd.MM.yyyy')}
                         </p>
                       )}
                     </div>

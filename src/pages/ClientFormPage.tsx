@@ -118,7 +118,7 @@ const ClientFormPage: React.FC = () => {
   };
 
   const addParent = () => {
-    setParents([...parents, { id: '', name: '', birthDate: '' }]);
+    setParents([...parents, { id: '', name: '', phoneNumber: '', relation: '', birthDate: '' }]);
   };
 
   const removeParent = (index: number) => {
@@ -308,7 +308,36 @@ const ClientFormPage: React.FC = () => {
                       value={parent.name}
                       onChange={(e) => updateParent(index, 'name', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      placeholder="Например: Феруза"
                     />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Кто это (отношение)</label>
+                    <input
+                      type="text"
+                      value={parent.relation || ''}
+                      onChange={(e) => updateParent(index, 'relation', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                      placeholder="Например: Мама, Папа, Бабушка"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Номер телефона</label>
+                    <div className="flex">
+                      <span className="inline-flex items-center px-3 text-gray-700 bg-gray-100 border border-r-0 border-gray-300 rounded-l-md text-sm">
+                        +998
+                      </span>
+                      <input
+                        type="text"
+                        value={parent.phoneNumber}
+                        onChange={(e) => updateParent(index, 'phoneNumber', e.target.value.replace(/\D/g, '').slice(0, 9))}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:ring-2 focus:ring-blue-500"
+                        placeholder="901234567"
+                        maxLength={9}
+                      />
+                    </div>
                   </div>
                   
                   <div>
