@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { mockClientService as clientService } from '../services/mockClientService';
+import { clientService } from '../services/clientService';
 import type { Client } from '../types';
 import Navbar from '../components/Navbar';
 
