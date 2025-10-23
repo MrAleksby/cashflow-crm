@@ -15,6 +15,8 @@
         "destination": "/index.html"
       }
     ],
+    "cleanUrls": true,
+    "trailingSlash": false,
     "headers": [
       {
         "source": "**/*.@(jpg|jpeg|gif|png|svg|webp)",
@@ -37,4 +39,3 @@
     ]
   }
 }
-
