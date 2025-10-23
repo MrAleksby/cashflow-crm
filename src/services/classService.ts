@@ -138,6 +138,16 @@ export const classService = {
       const client = await clientService.getClientById(clientId);
       if (!client) throw new Error('Клиент не найден');
 
+      // Проверяем, не отмечен ли уже ребенок
+      const existingRegistration = classDoc.registeredChildren.find(reg => 
+        reg.clientId === clientId && reg.childId === childId
+      );
+      
+      if (existingRegistration?.attended) {
+        // Ребенок уже отмечен, ничего не делаем
+        return;
+      }
+
       // Проверяем наличие доступных занятий
       if (client.classesRemaining <= 0) {
         throw new Error(`У клиента нет доступных занятий. Осталось: ${client.classesRemaining}. Необходимо купить занятия.`);
@@ -186,6 +196,16 @@ export const classService = {
 
       const client = await clientService.getClientById(clientId);
       if (!client) throw new Error('Клиент не найден');
+
+      // Проверяем, не отменен ли уже ребенок
+      const existingRegistration = classDoc.registeredChildren.find(reg => 
+        reg.clientId === clientId && reg.childId === childId
+      );
+      
+      if (!existingRegistration?.attended) {
+        // Ребенок уже не отмечен, ничего не делаем
+        return;
+      }
 
       // Обновляем статус посещения
       const updatedRegistrations = classDoc.registeredChildren.map(reg => {
