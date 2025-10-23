@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { mockClientService as clientService } from '../services/mockClientService';
-import { transactionService } from '../services/transactionService';
-import { classService } from '../services/classService';
+import { mockTransactionService as transactionService } from '../services/mockTransactionService';
+import { mockClassService as classService } from '../services/mockClassService';
 import type { Client, Transaction, ClassSession } from '../types';
 import Navbar from '../components/Navbar';
 import { format } from 'date-fns';

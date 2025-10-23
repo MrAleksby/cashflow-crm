@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { classService } from '../services/classService';
+import { mockClassService as classService } from '../services/mockClassService';
 import { mockClientService as clientService } from '../services/mockClientService';
 import type { ClassSession, Client } from '../types';
 import Navbar from '../components/Navbar';
