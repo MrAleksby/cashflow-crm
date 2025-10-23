@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { clientService } from '../services/clientService';
+import { mockClientService as clientService } from '../services/mockClientService';
 import { campaignService } from '../services/campaignService';
 import type { Child, Parent, Campaign } from '../types';
 import Navbar from '../components/Navbar';

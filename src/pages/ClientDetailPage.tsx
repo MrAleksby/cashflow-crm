@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { clientService } from '../services/clientService';
+import { mockClientService as clientService } from '../services/mockClientService';
 import { transactionService } from '../services/transactionService';
 import { classService } from '../services/classService';
 import type { Client, Transaction, ClassSession } from '../types';
